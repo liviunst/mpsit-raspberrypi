@@ -21,6 +21,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
+using WinRTXamlToolkit.Controls.DataVisualization.Charting;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -72,6 +73,22 @@ namespace RaspberryDashboard
             images.Add(Image3);
 
             InitializeServerCommunication(Dispatcher);
+
+            InitializeChart();
+        }
+
+        private void InitializeChart()
+        {
+            for (int i = 0; i < 30; i++)
+            {
+                _records.Add(new Record()
+                {
+                    Name = i.ToString(),
+                    Temperature = i
+                });
+            }
+            var series = LineChart.Series[0] as LineSeries;
+            if (series != null) series.ItemsSource = _records;
         }
 
         private void InitializeServerCommunication(CoreDispatcher dispatcher)
@@ -164,7 +181,5 @@ namespace RaspberryDashboard
         {
             ServerIpValue = ServerIp.Text;
         }
-
-        
     }
 }
