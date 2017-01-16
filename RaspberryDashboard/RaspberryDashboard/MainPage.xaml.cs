@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using Windows.Devices.Enumeration;
+using Windows.Devices.SerialCommunication;
 using Windows.Media.Capture;
 using Windows.Media.MediaProperties;
 using Windows.Storage;
@@ -15,12 +13,7 @@ using Windows.System.Threading;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.Xaml.Navigation;
 using WinRTXamlToolkit.Controls.DataVisualization.Charting;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -39,6 +32,9 @@ namespace RaspberryDashboard
         private List<Record> _records = new List<Record>();
         private object _thisLock = new object();
         private int _iteration = 0;
+        private int _samplingIteration = 0;
+        private string _deviceId = string.Empty;
+        private OneWire onewire;
 
         private string _serverIpValue;
         private string ServerIpValue
@@ -74,21 +70,7 @@ namespace RaspberryDashboard
 
             InitializeServerCommunication(Dispatcher);
 
-            InitializeChart();
-        }
-
-        private void InitializeChart()
-        {
-            for (int i = 0; i < 30; i++)
-            {
-                _records.Add(new Record()
-                {
-                    Name = i.ToString(),
-                    Temperature = i
-                });
-            }
-            var series = LineChart.Series[0] as LineSeries;
-            if (series != null) series.ItemsSource = _records;
+            InitializeTemperatureReading(Dispatcher);
         }
 
         private void InitializeServerCommunication(CoreDispatcher dispatcher)
@@ -175,7 +157,74 @@ namespace RaspberryDashboard
             _currentImageId = (_currentImageId + 1) % 3;
         }
 
-#endregion
+        #endregion
+
+        #region Temperature
+        private void InitializeTemperatureReading(CoreDispatcher dispatcher)
+        {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            ThreadPool.RunAsync(async asyncAction => {
+                while (true)
+                {
+                    try
+                    {
+                        var result = await onewire.getTemperature(_deviceId);
+                        _samplingIteration++;
+                        _records.Add(new Record()
+                        {
+                            Name = _samplingIteration.ToString(),
+                            Temperature = result
+                        });
+                        dispatcher.TryRunAsync(CoreDispatcherPriority.High, () =>
+                        {
+                            UpdateCharts();
+                            TemperatureValue.Text = result.ToString();
+                        });
+
+                        Task.Delay(2000).Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        var message = ex.Message;
+                    }
+                }
+            });
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        }
+
+        private async Task GetFirstSerialPort()
+        {
+            try
+            {
+                string aqs = SerialDevice.GetDeviceSelector();
+                var dis = await DeviceInformation.FindAllAsync(aqs);
+                if (dis.Count > 0)
+                {
+                    var deviceInfo = dis.First();
+                    _deviceId = deviceInfo.Id;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Text += "Unable to get serial device: " + ex.Message;
+            }
+        }
+
+        private void UpdateCharts()
+        {
+            var temporary = new List<Record>();
+
+            foreach (var record in _records)
+            {
+                temporary.Add(record);
+            }
+
+            var series = LineChart.Series[0] as LineSeries;
+            if (series != null) series.ItemsSource = temporary;
+        }
+
+
+        #endregion
 
         private void CreateClient_OnClick(object sender, RoutedEventArgs e)
         {

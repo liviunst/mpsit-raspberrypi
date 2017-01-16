@@ -3,6 +3,6 @@
     class Record
     {
         public string Name { get; set; }
-        public int Temperature { get; set; }
+        public double Temperature { get; set; }
     }
 }
