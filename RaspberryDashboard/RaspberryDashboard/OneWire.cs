@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.SerialCommunication;
 using Windows.Storage.Streams;
@@ -55,13 +51,14 @@ namespace RaspberryDashboard
                 await dataReaderObject.LoadAsync(1);
                 byte resp = dataReaderObject.ReadByte();
 
-
                 if (resp == 0xFF)
                 {
+                    System.Diagnostics.Debug.WriteLine("Nothing connected to UART");
                     return false;
                 }
                 else if (resp == 0xF0)
                 {
+                    System.Diagnostics.Debug.WriteLine("No 1-wire devices are present");
                     return false;
                 }
                 else
@@ -117,6 +114,7 @@ namespace RaspberryDashboard
                 // Build up byte bit by bit, LSB first
                 b = (byte)((b >> 1) + 0x80 * await onewireBit(1));
             }
+            System.Diagnostics.Debug.WriteLine("onewireReadByte result: " + b);
             return b;
         }
 
@@ -142,7 +140,6 @@ namespace RaspberryDashboard
                                               // DS18B20 will transmit 9 bytes to master (us)
                                               // starting with the LSB
 
-
                 byte tempLSB = await onewireReadByte(); //read lsb
                 byte tempMSB = await onewireReadByte(); //read msb
 
@@ -151,8 +148,8 @@ namespace RaspberryDashboard
 
                 // Log the Celsius temperature
                 tempCelsius = ((tempMSB * 256) + tempLSB) / 16.0;
-
             }
+
             return tempCelsius;
         }
     }

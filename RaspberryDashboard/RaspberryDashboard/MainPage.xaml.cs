@@ -8,6 +8,7 @@ using Windows.Devices.SerialCommunication;
 using Windows.Media.Capture;
 using Windows.Media.MediaProperties;
 using Windows.Storage;
+using Windows.Storage.AccessCache;
 using Windows.Storage.Streams;
 using Windows.System.Threading;
 using Windows.UI.Core;
@@ -34,7 +35,9 @@ namespace RaspberryDashboard
         private int _iteration = 0;
         private int _samplingIteration = 0;
         private string _deviceId = string.Empty;
-        private OneWire onewire;
+        private OneWire _onewire =  new OneWire();
+        private DispatcherTimer timer;
+        private bool inprog = false;
 
         private string _serverIpValue;
         private string ServerIpValue
@@ -60,7 +63,7 @@ namespace RaspberryDashboard
             this.InitializeComponent();
         }
 
-        private void MainPage_OnLoaded(object sender, RoutedEventArgs e)
+        private async void MainPage_OnLoaded(object sender, RoutedEventArgs e)
         {
             InitializeWebCam();
 
@@ -70,7 +73,36 @@ namespace RaspberryDashboard
 
             InitializeServerCommunication(Dispatcher);
 
-            InitializeTemperatureReading(Dispatcher);
+            //InitializeTemperatureReading(Dispatcher);
+            await GetFirstSerialPort();
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(10000);
+            timer.Tick += Timer_Tick;
+            _onewire = new OneWire();
+            timer.Start();
+        }
+
+        private async void Timer_Tick(object sender, object e)
+        {
+            if (!inprog)
+            {
+                inprog = true;
+                var result = await _onewire.getTemperature(_deviceId);
+                TemperatureValue.Text = result.ToString();
+                _records.Add(new Record()
+                {
+                    Name = _samplingIteration.ToString(),
+                    Temperature = result
+                });
+
+                if (string.IsNullOrEmpty(GetAddress()) == false)
+                {
+                    await _client.PutAsync(GetAddress() + "/temperature", new StringContent(result.ToString()));
+                }
+                _samplingIteration++;
+                UpdateCharts();
+                inprog = false;
+            }
         }
 
         private void InitializeServerCommunication(CoreDispatcher dispatcher)
@@ -83,7 +115,7 @@ namespace RaspberryDashboard
                     {
                         if (!string.IsNullOrEmpty(ServerIpValue))
                         {
-                            var address = "http://" + ServerIpValue + ":9000/api/rasp/command";
+                            var address = GetAddress() + "/command";
                             var response = await _client.GetAsync(address);
                             var result = await response.Content.ReadAsStringAsync();
                             dispatcher.TryRunAsync(CoreDispatcherPriority.High, () =>
@@ -93,7 +125,7 @@ namespace RaspberryDashboard
                                 Logging.Text += DateTime.Now + " --- " + result + " --- " + Environment.NewLine;
                             });
                         }
-                        Task.Delay(1000).Wait();
+                        Task.Delay(5000).Wait();
                     }
                     catch (Exception ex)
                     {
@@ -102,6 +134,11 @@ namespace RaspberryDashboard
                 }
             });
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        }
+
+        private string GetAddress()
+        {
+            return "http://" + ServerIpValue + ":9000/api/rasp/";
         }
 
         #region WebCam
@@ -160,15 +197,16 @@ namespace RaspberryDashboard
         #endregion
 
         #region Temperature
-        private void InitializeTemperatureReading(CoreDispatcher dispatcher)
+        private async void InitializeTemperatureReading(CoreDispatcher dispatcher)
         {
+            await GetFirstSerialPort();
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             ThreadPool.RunAsync(async asyncAction => {
                 while (true)
                 {
                     try
                     {
-                        var result = await onewire.getTemperature(_deviceId);
+                        var result = await _onewire.getTemperature(_deviceId);
                         _samplingIteration++;
                         _records.Add(new Record()
                         {
