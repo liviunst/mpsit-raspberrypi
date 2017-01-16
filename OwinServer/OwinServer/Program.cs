@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Owin.Hosting;
 using Owin;
@@ -15,6 +11,10 @@ namespace OwinServer
         {
             string baseAddress = "http://*:9000/";
             Console.ForegroundColor = ConsoleColor.Green;
+
+            var context = new MpsitModel();
+            context.Commands.Add(new Command() {Value = "test"});
+            context.SaveChanges();
 
             using (WebApp.Start(baseAddress, appbuilder =>
             {
