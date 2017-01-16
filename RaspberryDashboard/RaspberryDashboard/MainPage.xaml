@@ -5,9 +5,56 @@
     xmlns:local="using:RaspberryDashboard"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    xmlns:Charting="using:WinRTXamlToolkit.Controls.DataVisualization.Charting"
+    mc:Ignorable="d"
+    Height="800">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
+        <StackPanel Name="MyPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Margin="12,0,0,0">
+            <TextBox Name="ServerIp" Margin="10" PlaceholderText="Server ip address" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            <Button Name="CreateClient" Margin="10" Content="Connect to server" Height="{Binding ActualHeight, ElementName=MyPanel}" Click="CreateClient_OnClick" />
+            <Button Name="TakePhoto" Margin="10" Content="Capture photo" Height="{Binding ActualHeight, ElementName=MyPanel}" Click="TakePhoto_Click"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,0,0,77">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="500"/>
+                <RowDefinition Height="200"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center">
+                <StackPanel Margin="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Canvas Width="400" Height="200" MaxHeight="200" Background="CornflowerBlue" Margin="10" Visibility="Visible">
+                        <CaptureElement Name="CameraLiveStream" Visibility="Visible" Width="400" MaxHeight="200"/>
+                    </Canvas>
+                </StackPanel>
+                <StackPanel Margin="10" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Canvas Width="200" Height="200" Background="CornflowerBlue" Margin="10" Visibility="Visible">
+                        <Image Name="Image1" Visibility="Visible" Width="200" Height="200"></Image>
+                    </Canvas>
+                    <Canvas Width="200" Height="200" Background="CornflowerBlue" Margin="10" Visibility="Visible">
+                        <Image Name="Image2" Visibility="Visible" Width="200" Height="200"></Image>
+                    </Canvas>
+                    <Canvas Width="200" Height="200" Background="CornflowerBlue" Margin="10" Visibility="Visible">
+                        <Image Name="Image3" Visibility="Visible" Width="200" Height="200"></Image>
+                    </Canvas>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Name="LogScrollViewer" Grid.Row="0" Grid.Column="1" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center">
+                <TextBox Height="200" Width="600" Margin="20" Name="Logging" AcceptsReturn="True" TextAlignment="Left"/>
+            </StackPanel>
+            <Charting:Chart x:Name="LineChart" Grid.Row="1" Grid.Column="0" Height="200" Width="600" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <Charting:LineSeries Margin="0" IndependentValuePath="Name" DependentValuePath="Temperature" IsSelectionEnabled="True"/>
+            </Charting:Chart>
+        </Grid>
     </Grid>
 </Page>
