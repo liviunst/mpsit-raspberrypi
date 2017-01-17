@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Globalization;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.Remoting.Contexts;
 using System.Web.Http;
 
@@ -15,6 +17,29 @@ namespace OwinServer
         public string GetCommand()
         {
             return "Nothing";
+        }
+
+        [HttpPost]
+        [Route("picture")]
+        public string PostPicture()
+        {
+            var provider = new MultipartMemoryStreamProvider();
+            Request.Content.ReadAsMultipartAsync(provider).Wait();
+            foreach (var file in provider.Contents)
+            {
+                var filename = file.Headers.ContentDisposition.FileName.Trim('\"');
+                var buffer = file.ReadAsByteArrayAsync().Result;
+
+                var im = new Image()
+                {
+                    Name = filename,
+                    Content = buffer
+                };
+
+                context.Images.Add(im);
+                context.SaveChanges();
+            }
+            return "ok";
         }
 
         [HttpPut]

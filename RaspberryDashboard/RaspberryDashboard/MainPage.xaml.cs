@@ -95,9 +95,16 @@ namespace RaspberryDashboard
                     Temperature = result
                 });
 
-                if (string.IsNullOrEmpty(GetAddress()) == false)
+                try
                 {
-                    await _client.PutAsync(GetAddress() + "/temperature", new StringContent(result.ToString()));
+                    if (string.IsNullOrEmpty(GetAddress()) == false)
+                    {
+                        await _client.PutAsync(GetAddress() + "temperature", new StringContent(result.ToString()));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var mes = ex.Message;
                 }
                 _samplingIteration++;
                 UpdateCharts();
@@ -192,6 +199,26 @@ namespace RaspberryDashboard
             bitmap.SetSource(photoStream);
             images[_currentImageId].Source = bitmap;
             _currentImageId = (_currentImageId + 1) % 3;
+
+            if (string.IsNullOrEmpty(GetAddress()) == false)
+            {
+                try
+                {
+                    var dr = new DataReader(photoStream.GetInputStreamAt(0));
+                    var bytes = new byte[photoStream.Size];
+                    await dr.LoadAsync((uint)photoStream.Size);
+                    dr.ReadBytes(bytes);
+
+
+                    MultipartFormDataContent form = new MultipartFormDataContent();
+                    form.Add(new ByteArrayContent(bytes), "picture", photofile.Name);
+                    await _client.PostAsync(GetAddress() + "picture", form);
+                }
+                catch (Exception exception)
+                {
+                    var mes = exception.Message;
+                }
+            }
         }
 
         #endregion
