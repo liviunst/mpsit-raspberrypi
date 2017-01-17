@@ -23,10 +23,10 @@
             <Button Content="Sent take picture command" Click="Button_Click"></Button>
         </StackPanel>
         
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
             <ListViewItem Name="imageList"></ListViewItem>
         </StackPanel>
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
             <charting:Chart x:Name="LineChart" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Height="200" Width="1200" HorizontalAlignment="Center" VerticalAlignment="Top">
                 <charting:LineSeries Margin="0" IndependentValuePath="Id" DependentValuePath="Value" IsSelectionEnabled="True"/>
             </charting:Chart>
