@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Remoting.Contexts;
 using System.Web.Http;
+using Newtonsoft.Json;
 
 namespace OwinServer
 {
@@ -16,7 +18,37 @@ namespace OwinServer
         [Route("command")]
         public string GetCommand()
         {
-            return "Nothing";
+            try
+            {
+                var commands = context.Commands.Where(x => x.Sent == false).OrderBy(x => x.Id);
+                var firstCommand = commands.First();
+                firstCommand.Sent = true;
+                context.SaveChanges();
+                return firstCommand.Value;
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.Message;
+            }
+
+            return "No Command";
+        }
+
+        [HttpPut]
+        [Route("command")]
+        public string PutCommand()
+        {
+            var result = Request.Content.ReadAsStringAsync().Result;
+
+            context.Commands.Add(new Command()
+            {
+                Sent = false,
+                Value = result
+            });
+
+            context.SaveChanges();
+
+            return "ok";
         }
 
         [HttpPost]
@@ -60,6 +92,19 @@ namespace OwinServer
             context.SaveChanges();
 
             return "Ok";
+        }
+
+        [HttpGet]
+        [Route("temperature")]
+        public string GetTemperature()
+        {
+            var temperatures = context.Temperatures.ToList();
+            var count = temperatures.Count;
+            var record = temperatures.Skip(Math.Max(0, count - 1)).FirstOrDefault();
+
+            var result = "x" + record.Id + "x" + record.Value + "x";
+
+            return result;
         }
     }
 }

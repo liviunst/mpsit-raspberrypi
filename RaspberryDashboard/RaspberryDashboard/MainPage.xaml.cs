@@ -130,6 +130,11 @@ namespace RaspberryDashboard
                                 if (_iteration % 5 == 0) Logging.Text = "";
                                 _iteration++;
                                 Logging.Text += DateTime.Now + " --- " + result + " --- " + Environment.NewLine;
+
+                                if (result.Contains("take_picture"))
+                                {
+                                    TakePhoto_Click(null, null);
+                                }
                             });
                         }
                         Task.Delay(5000).Wait();

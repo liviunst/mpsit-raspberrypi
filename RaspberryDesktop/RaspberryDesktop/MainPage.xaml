@@ -1,0 +1,35 @@
+﻿<Page
+    x:Class="RaspberryDesktop.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:RaspberryDesktop"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:charting="using:WinRTXamlToolkit.Controls.DataVisualization.Charting"
+    mc:Ignorable="d"
+    Loaded="MainPage_OnLoaded">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Raspberry" Margin="0,0,10,0"></TextBlock>
+                <TextBlock Text="offline"></TextBlock>
+            </StackPanel>
+            <Button Content="Sent take picture command" Click="Button_Click"></Button>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <ListViewItem Name="imageList"></ListViewItem>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <charting:Chart x:Name="LineChart" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Height="200" Width="1200" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <charting:LineSeries Margin="0" IndependentValuePath="Id" DependentValuePath="Value" IsSelectionEnabled="True"/>
+            </charting:Chart>
+        </StackPanel>
+    </Grid>
+</Page>
